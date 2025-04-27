@@ -1,5 +1,9 @@
-Flask==2.3.3
-Flask-Cors==4.0.0
-Flask-SQLAlchemy==3.1.1
-python-dotenv==1.0.1
-Werkzeug==2.3.7
+Flask>=2.3,<4
+Flask-Cors>=4.0
+Flask-SQLAlchemy>=3.1
+python-dotenv>=1.0
+Werkzeug>=2.3,<4
+openai>=1.0 # Añadido OpenAI
+PyPDF2>=3.0 # Añadido PyPDF2
+SQLAlchemy>=1.4,<3 # Especificar versión compatible con Flask-SQLAlchemy 3.1
+Greenlet>=1.1 # Dependencia a veces necesaria para SQLAlchemy/Flask

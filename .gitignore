@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*build*/
+*dist*/
+*.egg-info/
+*.spec
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Instance folder (Flask specific)
+/backend/instance/
+/backend/uploads/
+
+# Environment variables
+.env*
+*.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json # Consider keeping if you want exact dependency locking
+# yarn.lock # Uncomment if using Yarn
+
+# Frontend build artifacts
+/frontend/build/
+/frontend/.next/ # If using Next.js
+
+# IDE specific
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
