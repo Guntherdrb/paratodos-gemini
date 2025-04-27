@@ -1,85 +1,102 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import ProductCard from './src/ProductCard'; // Importa el nuevo componente
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
 function ProductosTienda() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [storeName, setStoreName] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch(`http://localhost:5000/api/productos/${slug}`)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Error al cargar los productos desde el servidor.');
-        }
-        return res.json();
-      })
+    fetch(`/api/productos/${slug}`)
+      .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.productos)) {
+        if (data.success) {
           setProductos(data.productos);
-        } else {
-          console.warn('La respuesta del API no tiene el formato esperado o no fue exitosa:', data);
-          setError('No se pudieron cargar los productos o no hay productos disponibles.');
-          setProductos([]); // Asegura que productos sea un array vacío si falla
         }
-        setLoading(false);
       })
-      .catch(error => {
-        console.error('Error fetching productos:', error);
-        setError(error.message || 'Ocurrió un error al conectar con el servidor.');
-        setLoading(false);
-        setProductos([]); // Asegura estado vacío en caso de error de red
-      });
+      .catch(err => console.error("Error cargando productos:", err));
+  }, [slug]);
+  // Obtener nombre de la tienda para header
+  useEffect(() => {
+    fetch(`/api/tienda/${slug}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setStoreName(data.tienda.nombre);
+      })
+      .catch(err => console.error('Error cargando tienda:', err));
   }, [slug]);
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-gray-800">Mis Productos</h1>
-          {/* TODO: Funcionalidad Agregar Producto - Puede requerir un modal o nueva página */}
+    <div className="font-sans text-gray-800 bg-gray-50 min-h-screen">
+      {/* Nombre de la tienda */}
+      {storeName && (
+        <div className="pt-16 pb-4 bg-white shadow">
+          <h1 className="text-center text-2xl font-bold">{storeName}</h1>
+        </div>
+      )}
+      {/* Navbar superior */}
+      <header className="bg-white shadow fixed w-full top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-3xl font-bold text-blue-900">
+            ParaTodos<span className="text-gray-800">.IA</span>
+          </span>
+        </div>
+        <nav className="flex gap-6 items-center">
+          <Link to="/" className="text-gray-600 hover:text-blue-600 font-medium">Inicio</Link>
+          <Link to="/crear-tienda" className="text-gray-600 hover:text-blue-600 font-medium">Crear Tienda</Link>
+          <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium">Login</Link>
+          <button className="border px-3 py-1 rounded text-sm hover:bg-gray-100">🌐 ES | EN</button>
+        </nav>
+      </header>
+
+      <main className="pt-28 max-w-6xl mx-auto px-4 sm:px-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Mis Productos</h1>
           <Link
             to={`/dashboard/${slug}/productos/nuevo`}
-            className="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
           >
-            ➕ Agregar Nuevo Producto
+            + Agregar producto
           </Link>
         </div>
 
-        {loading && (
-          <div className="text-center py-10">
-            <p className="text-lg text-gray-600">Cargando productos...</p>
-            {/* Puedes añadir un spinner aquí */}
-          </div>
-        )}
-        
-        {!loading && error && (
-           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 max-w-3xl mx-auto" role="alert">
-            <strong className="font-bold">¡Error!</strong>
-            <span className="block sm:inline"> {error}</span>
-          </div>
-        )}
-
-        {!loading && !error && productos.length === 0 && (
-          <div className="text-center py-10 bg-white shadow rounded-lg">
-            <p className="text-xl text-gray-500">Aún no tienes productos cargados.</p>
-            <p className="text-gray-500 mt-2">Sube un nuevo catálogo o agrega productos manualmente.</p>
-          </div>
-        )}
-
-        {!loading && !error && productos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {productos.map((p) => (
-              // Usa el ProductCard, pasando el producto y el slug
-              <ProductCard key={p.id || p.nombre} producto={p} slug={slug} /> 
+        {productos.length === 0 ? (
+          <p className="text-gray-500">No hay productos registrados todavía.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {productos.map((prod) => (
+              <div key={prod.id} className="bg-white border rounded-lg shadow-sm p-4">
+                {prod.imagen && (
+                  <img
+                    src={prod.imagen}
+                    alt={prod.nombre}
+                    className="h-40 w-full object-cover rounded mb-4"
+                  />
+                )}
+                <h2 className="text-lg font-semibold">{prod.nombre}</h2>
+                <p className="text-sm text-gray-600 mb-2">{prod.descripcion}</p>
+                <p className="font-bold text-blue-700 mb-3">${prod.precio}</p>
+                <Link
+                  to={`/dashboard/${slug}/productos/editar/${prod.id}`}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  ✏️ Editar producto
+                </Link>
+              </div>
             ))}
           </div>
         )}
-      </div>
+
+        <div className="mt-10">
+          <button
+            onClick={() => navigate(`/dashboard/${slug}`)}
+            className="text-blue-600 text-sm underline"
+          >
+            ← Volver al Dashboard
+          </button>
+        </div>
+      </main>
     </div>
   );
 }
